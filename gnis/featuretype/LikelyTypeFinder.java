@@ -13,9 +13,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-
+import java.util.LinkedList;
 import java.util.Map.Entry;
-
+import java.util.Queue;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -28,6 +28,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PiePlot3D;
 import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.util.Rotation;
+
+
 
 public class LikelyTypeFinder implements ActionListener {
 
@@ -147,6 +149,7 @@ public class LikelyTypeFinder implements ActionListener {
 
 			ArrayList<String> words = new ArrayList<String>();
 			ArrayList<Integer> numWords = new ArrayList<Integer>();
+			ArrayList<String> predicates = new ArrayList<String>();
 			
 			String features;
 			while((features=fin.readLine())!=null){
@@ -160,26 +163,50 @@ public class LikelyTypeFinder implements ActionListener {
 
 			}
 
+			Queue<Integer> matches = new LinkedList<Integer>();
+			int count = 0;
 			for(String s : line.split(" ")){
-				for(int i = 0; i < words.size(); i++){
-					if(s.equalsIgnoreCase(words.get(i))){
+				count++;
+				for(int i = 0; i < words.size(); i++)
+				{
+					if(s.equalsIgnoreCase(words.get(i)))
+					{
 						numWords.set(i, numWords.get(i)+1);
+						if(i != 0)
+						{
+							matches.add(count);	 
+						}
 					}
 				}
 			}
 			
+			count = 1;
+			for(String s : line.split(" "))
+			{
+
+				while(matches.size() > 0 && count == matches.peek() - 1)
+				{
+					predicates.add(s);
+					if(matches.size() > 0)
+					    matches.remove();
+				}
+				  count++;
+			}
+
+
+			for(int i = 0; i < predicates.size(); i++)
+			{
+			}
 			
-			
-			//consolidate
-			System.out.println(line);
 			ArrayList<String> cWords = new ArrayList<String>();
 			ArrayList<Integer> cNum = new ArrayList<Integer>();
-
+			ArrayList<String> cPredicates = new ArrayList<String>();
 			
 			for(int i=0; i<words.size(); i++){
 				if(words.get(i)==null || i==0){
 					cWords.add(words.get(i+1));
 					cNum.add(0);
+					cPredicates.add(predicates.get(i + 1));
 				}
 				else{
 					cNum.set(cNum.size()-1, cNum.get(cNum.size()-1)+numWords.get(i));
@@ -191,7 +218,7 @@ public class LikelyTypeFinder implements ActionListener {
 
 			ArrayList<String> sWords = new ArrayList<String>();
 			ArrayList<Integer> sNum = new ArrayList<Integer>();
-
+			ArrayList<String> sPredicates = new ArrayList<String>();
 			
 			while(cNum.size()>0){
 				int high=0;
@@ -202,8 +229,10 @@ public class LikelyTypeFinder implements ActionListener {
 				}
 				sWords.add(cWords.get(high));
 				sNum.add(cNum.get(high));
+				sPredicates.add(cPredicates.get(high));
 				cWords.remove(high);
 				cNum.remove(high);
+				cPredicates.remove(high);
 			}
 
 			
