@@ -2,6 +2,7 @@ package gnis.featuretype;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -20,6 +21,9 @@ import java.util.Queue;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import org.jfree.chart.ChartFactory;
@@ -32,13 +36,16 @@ import org.jfree.util.Rotation;
 
 
 public class LikelyTypeFinder implements ActionListener {
-
+  JPanel areaPanel = new JPanel();
+  JPanel nonTextArea = new JPanel();
 	JFrame frame = new JFrame("TermFinderDemo");
 	JLabel instructions = new JLabel("Enter unknown term below");
 	JTextField term = new JTextField(15);
 	JButton submit = new JButton("Find Likely Matches");
 	JLabel results = new JLabel("Results will be displayed here.");
+  JTextArea triples = new JTextArea("Triples will be displayed here.");
 	JFrame chartFrame = new JFrame("Match chart");
+	JScrollPane scroll = new JScrollPane(triples);
 	DefaultPieDataset pieData;
 	JFreeChart chart;
 	ChartPanel cp;
@@ -46,21 +53,30 @@ public class LikelyTypeFinder implements ActionListener {
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) 
+	{
 		new LikelyTypeFinder();
 	}
 
-	public LikelyTypeFinder(){
+	public LikelyTypeFinder()
+	{
+		frame.setLayout(new GridLayout(1, 2, 30, 0));
+		nonTextArea.setLayout(new FlowLayout());
+		areaPanel.setLayout(new FlowLayout());
+
 		submit.setActionCommand("look");
 		submit.addActionListener(this);
 		term.setActionCommand("look");
 		term.addActionListener(this);
-		frame.add(instructions);
-		frame.add(term);
-		frame.add(submit);
-		frame.add(results);
-		frame.setLayout(new FlowLayout());
-		frame.setBounds(200, 200, 200, 400);
+		nonTextArea.add(instructions);
+		nonTextArea.add(term);
+		nonTextArea.add(submit);
+		nonTextArea.add(results);
+		scroll.setBounds(100, 100, 50, 50);
+		areaPanel.add(scroll);
+		frame.add(nonTextArea);
+		frame.add(areaPanel);
+		frame.setBounds(200, 200, 550, 800);
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
@@ -71,7 +87,7 @@ public class LikelyTypeFinder implements ActionListener {
 
 			try
 			{
-				LinkedHashMap<String, Integer> map = getLikelyTypeMap(term.getText());
+				LinkedHashMap<String, Integer> map = getLikelyTypeMap(scroll, triples, term.getText());
 
 				System.out.println(map.toString());
 				results.setText("<HTML>"+
@@ -118,7 +134,8 @@ public class LikelyTypeFinder implements ActionListener {
 	} 
 
 
-	public static LinkedHashMap<String, Integer> getLikelyTypeMap(String unknownType) throws Exception{
+	public static LinkedHashMap<String, Integer> getLikelyTypeMap(JScrollPane scroll, JTextArea area, String unknownType) throws Exception{
+		
 		try{
 		    unknownType = unknownType.replaceAll("\\s","");
 			HttpURLConnection conn = (HttpURLConnection)( new URL("http://www.google.com/search?hl=en&source=hp&q=define%3A+"+unknownType+"&aq=f&aqi=g10&aql=&oq=&safe=active").openConnection());
@@ -146,11 +163,14 @@ public class LikelyTypeFinder implements ActionListener {
 			line=sb.toString();
 
 			BufferedReader fin = new BufferedReader( new FileReader(new File("featureIn.csv")));
+			BufferedReader dictionary = new BufferedReader( new FileReader(new File("featureIn.csv")));
 
 			ArrayList<String> words = new ArrayList<String>();
 			ArrayList<Integer> numWords = new ArrayList<Integer>();
 			ArrayList<String> predicates = new ArrayList<String>();
 			
+			
+			//populates features with the features to match against in the csv file
 			String features;
 			while((features=fin.readLine())!=null){
 				words.add(null);
@@ -162,7 +182,9 @@ public class LikelyTypeFinder implements ActionListener {
 				}
 
 			}
+			
 
+			
 			Queue<Integer> matches = new LinkedList<Integer>();
 			int count = 0;
 			for(String s : line.split(" ")){
@@ -180,6 +202,8 @@ public class LikelyTypeFinder implements ActionListener {
 				}
 			}
 			
+
+			
 			count = 1;
 			for(String s : line.split(" "))
 			{
@@ -194,45 +218,61 @@ public class LikelyTypeFinder implements ActionListener {
 			}
 
 
-			for(int i = 0; i < predicates.size(); i++)
-			{
-			}
+		
 			
 			ArrayList<String> cWords = new ArrayList<String>();
 			ArrayList<Integer> cNum = new ArrayList<Integer>();
-			ArrayList<String> cPredicates = new ArrayList<String>();
+
 			
 			for(int i=0; i<words.size(); i++){
 				if(words.get(i)==null || i==0){
 					cWords.add(words.get(i+1));
 					cNum.add(0);
-					cPredicates.add(predicates.get(i + 1));
 				}
 				else{
 					cNum.set(cNum.size()-1, cNum.get(cNum.size()-1)+numWords.get(i));
 				}
 			}
 
+			
 			//sort
-
-
 			ArrayList<String> sWords = new ArrayList<String>();
 			ArrayList<Integer> sNum = new ArrayList<Integer>();
-			ArrayList<String> sPredicates = new ArrayList<String>();
+			ArrayList<String> combined = new ArrayList<String>();
 			
-			while(cNum.size()>0){
+			
+			count = 0;
+			int copies = 0;
+			for(int i = 0; i < cNum.size(); i++)
+			{
+				if(cNum.get(i) != 0)
+				{
+					copies = cNum.get(i);
+					while(copies > 0)
+					{
+						copies--;
+						combined.add(unknownType + "->" + predicates.get(count) + "->" + cWords.get(i) + "\n");
+						count++;
+					}
+				}
+			}
+			
+
+			
+			while(cNum.size() > 0)
+			{
 				int high=0;
-				for(int i=0; i<cWords.size(); i++){
-					if(cNum.get(i)>cNum.get(high)){
+				for(int i = 0; i < cWords.size(); i++)
+				{
+					if(cNum.get(i) > cNum.get(high))
+					{
 						high=i;
 					}
 				}
 				sWords.add(cWords.get(high));
 				sNum.add(cNum.get(high));
-				sPredicates.add(cPredicates.get(high));
 				cWords.remove(high);
 				cNum.remove(high);
-				cPredicates.remove(high);
 			}
 
 			
@@ -246,6 +286,13 @@ public class LikelyTypeFinder implements ActionListener {
 			}
 
 			fin.close();
+
+			area.setText("");
+			for(int i = 0; i < combined.size(); i++)
+			  area.append(combined.get(i) + "\n");
+			
+			scroll.setPreferredSize(new Dimension(400, 600));
+			
 			return results;
 
 		}catch(Exception e){
