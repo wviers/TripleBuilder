@@ -76,7 +76,7 @@ public class LikelyTypeFinder implements ActionListener {
 		areaPanel.add(scroll);
 		frame.add(nonTextArea);
 		frame.add(areaPanel);
-		frame.setBounds(200, 200, 550, 800);
+		frame.setBounds(200, 200, 450, 700);
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
@@ -163,7 +163,6 @@ public class LikelyTypeFinder implements ActionListener {
 			line=sb.toString();
 
 			BufferedReader fin = new BufferedReader( new FileReader(new File("featureIn.csv")));
-			BufferedReader dictionary = new BufferedReader( new FileReader(new File("featureIn.csv")));
 
 			ArrayList<String> words = new ArrayList<String>();
 			ArrayList<Integer> numWords = new ArrayList<Integer>();
@@ -172,7 +171,8 @@ public class LikelyTypeFinder implements ActionListener {
 			
 			//populates features with the features to match against in the csv file
 			String features;
-			while((features=fin.readLine())!=null){
+			while((features=fin.readLine())!=null)
+			{
 				words.add(null);
 				numWords.add(null);
 				String [] wordArray = features.split(", ");
@@ -241,24 +241,77 @@ public class LikelyTypeFinder implements ActionListener {
 			ArrayList<String> combined = new ArrayList<String>();
 			
 			
+			
+			BufferedReader dictionary = new BufferedReader( new FileReader(new File("dictionary.txt")));
+			ArrayList<String> dict = new ArrayList<String>();
+			String word;
+			
+			while((word = dictionary.readLine()).compareTo("misspelt") != 0)
+			{
+				dict.add(word);
+			}
+
+			
+
+			//For each match counted in cNum, if the corresponding predicate is in the dictionary then
+			//cNum[i] predicates are checked for spelling.  If the item in the predicates arraylist, is a word
+			//then it is used to create a triple in the combined arraylist.
+			boolean added;
+			StringBuilder sub;
+			int subCount = 1;
 			count = 0;
 			int copies = 0;
 			for(int i = 0; i < cNum.size(); i++)
 			{
 				if(cNum.get(i) != 0)
-				{
-					copies = cNum.get(i);
-					while(copies > 0)
-					{
-						copies--;
-						combined.add(unknownType + "->" + predicates.get(count) + "->" + cWords.get(i) + "\n");
-						count++;
-					}
+				{ 
+	        copies = cNum.get(i);
+		      while(copies > 0)
+		      {
+			    	added = false;
+		      	for(int j = 0; j < dict.size(); j++)
+					  {
+					    if(count < predicates.size() && predicates.get(count).compareTo(dict.get(j)) == 0 && !added)
+						  {
+						    copies--;
+						    combined.add(unknownType + "->" + predicates.get(count) + "->" + cWords.get(i) + "\n");
+						    count++;
+						    added = true;
+					    }
+					    else if(count < predicates.size() && !added)
+					    {
+					    	//continue removing the first character and checking the spelling of the 
+					    	//new string until a word is found, in case of html characters being concatenated onto the 
+					    	//front of desired words.
+
+					    	while(subCount < predicates.get(count).length() - 1 && !added)
+					    	{
+					    	  sub = new StringBuilder(predicates.get(count).substring(subCount));
+					    	  for(int h = 0; h < dict.size(); h++)
+							    {
+					    		  if(count < predicates.size() && predicates.get(count).compareTo(dict.get(h)) == 0)
+								    { 
+					    		  	added = true;
+					    		  	combined.add(unknownType + "->" + sub.toString() + "->" + cWords.get(i) + "\n");
+					    		  	count++;
+					    		  	copies--;
+								    }
+								  }
+					    	  subCount++;
+					    	}
+					    	if(!added)
+					    	{
+				      	  count++;
+				      	  copies--;
+				      	  added = true;
+					    	}
+              }
+					  }
+          }
 				}
 			}
 			
-
-			
+	
 			while(cNum.size() > 0)
 			{
 				int high=0;
@@ -276,7 +329,6 @@ public class LikelyTypeFinder implements ActionListener {
 			}
 
 			
-			
 			LinkedHashMap<String, Integer> results = new LinkedHashMap<String, Integer>();
 			for(int i=0; i<sWords.size(); i++){
 				if(sNum.get(i)!=null&&sNum.get(i)!=0)
@@ -285,14 +337,20 @@ public class LikelyTypeFinder implements ActionListener {
 				}
 			}
 
-			fin.close();
 
 			area.setText("");
-			for(int i = 0; i < combined.size(); i++)
+      for(int i = 0; i < combined.size(); i++)
+      {
 			  area.append(combined.get(i) + "\n");
+      }
+
+      if(combined.size() == 0)
+      {
+      	area.append("No triples generated.");
+      }
 			
-			scroll.setPreferredSize(new Dimension(400, 600));
-			
+			fin.close();
+			dictionary.close();
 			return results;
 
 		}catch(Exception e){
