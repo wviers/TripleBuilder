@@ -252,13 +252,38 @@ public class LikelyTypeFinder implements ActionListener {
 			}
 
 			
+	    System.out.println(predicates.toString());
+			StringBuilder sub;
+			boolean stop = false;
+			for(int i = 0; i < predicates.size(); i++)
+			{
+				stop = false;
+				for(int h = 0; !stop && h < dict.size(); h++)
+		    {
+					if(predicates.get(i).compareToIgnoreCase(dict.get(h)) == 0)
+					{
+						stop = true;
+					}
+		    }
+				for(int j = 0; !stop && j < predicates.get(i).length(); j++)
+				{
+					sub = new StringBuilder(predicates.get(i).substring(j));
+					System.out.println(sub.toString());
+					for(int k = 0; !stop && k < dict.size(); k++)
+			    {
+						if(sub.toString().compareToIgnoreCase(dict.get(k)) == 0)
+						{
+							stop = true;
+							predicates.set(i, sub.toString());
+						}
+			    }
+				}
+			}
+			System.out.println(predicates.toString());
 
 			//For each match counted in cNum, if the corresponding predicate is in the dictionary then
 			//cNum[i] predicates are checked for spelling.  If the item in the predicates arraylist, is a word
 			//then it is used to create a triple in the combined arraylist.
-			boolean added;
-			StringBuilder sub;
-			int subCount = 1;
 			count = 0;
 			int copies = 0;
 			for(int i = 0; i < cNum.size(); i++)
@@ -268,45 +293,17 @@ public class LikelyTypeFinder implements ActionListener {
 	        copies = cNum.get(i);
 		      while(copies > 0)
 		      {
-			    	added = false;
 		      	for(int j = 0; j < dict.size(); j++)
 					  {
-					    if(count < predicates.size() && predicates.get(count).compareTo(dict.get(j)) == 0 && !added)
+					    if(count < predicates.size() && predicates.get(count).compareToIgnoreCase(dict.get(j)) == 0)
 						  {
 						    copies--;
 						    combined.add(unknownType + "->" + predicates.get(count) + "->" + cWords.get(i) + "\n");
 						    count++;
-						    added = true;
 					    }
-					    else if(count < predicates.size() && !added)
-					    {
-					    	//continue removing the first character and checking the spelling of the 
-					    	//new string until a word is found, in case of html characters being concatenated onto the 
-					    	//front of desired words.
-
-					    	while(subCount < predicates.get(count).length() - 1 && !added)
-					    	{
-					    	  sub = new StringBuilder(predicates.get(count).substring(subCount));
-					    	  for(int h = 0; h < dict.size(); h++)
-							    {
-					    		  if(count < predicates.size() && predicates.get(count).compareTo(dict.get(h)) == 0)
-								    { 
-					    		  	added = true;
-					    		  	combined.add(unknownType + "->" + sub.toString() + "->" + cWords.get(i) + "\n");
-					    		  	count++;
-					    		  	copies--;
-								    }
-								  }
-					    	  subCount++;
-					    	}
-					    	if(!added)
-					    	{
-				      	  count++;
-				      	  copies--;
-				      	  added = true;
-					    	}
-              }
 					  }
+		      	copies--;
+		      	count++;
           }
 				}
 			}
