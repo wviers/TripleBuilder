@@ -135,22 +135,20 @@ public class LikelyTypeFinder implements ActionListener {
 
 
 	public static LinkedHashMap<String, Integer> getLikelyTypeMap(JScrollPane scroll, JTextArea area, String unknownType) throws Exception{
-		
+
 		try{
-		    unknownType = unknownType.replaceAll("\\s","");
-			HttpURLConnection conn = (HttpURLConnection)( new URL("http://www.google.com/search?hl=en&source=hp&q=define%3A+"+unknownType+"&aq=f&aqi=g10&aql=&oq=&safe=active").openConnection());
+		  unknownType = unknownType.replaceAll("\\s","");
+			HttpURLConnection conn = (HttpURLConnection)( new URL("https://www.google.com/search?q=" + unknownType + "&ie=utf-8&oe=utf-8&aq=t&rls=org.mozilla:en-US:official&client=firefox-a&channel=fflb#q=" + unknownType + "&hl=en&client=firefox-a&hs=Lwq&tbo=d&rls=org.mozilla:en-US:official&channel=fflb&source=lnt&tbs=dfn:1&sa=X&ei=4L63UK7sDc_82gXj_4HQDg&ved=0CCMQpwUoAw&fp=1&bpcl=38897761&biw=1280&bih=920&bav=on.2,or.r_gc.r_pw.r_qf.&cad=b&sei=w9G3UImPNqfB2QX55IDgCg").openConnection());
 			conn.setConnectTimeout( 10000 );
 			conn.setReadTimeout( 10000 );
 			conn.setInstanceFollowRedirects( true );
 			conn.setRequestProperty( "User-agent", "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2b5) Gecko/20091204 Firefox/3.6b5" );
 			InputStream is = (InputStream)(conn.getContent());
-			String line;
+			String line = " ";
 			BufferedReader in = new BufferedReader( new InputStreamReader(is));
-			while(!(line=in.readLine()).contains(".mp3")){
-				//sets line to the line that has the info on it.
-			}
-			line = line.substring(line.indexOf(".mp3"));//reduces the line to only contain the info and tags
+		  line=in.readLine();
 
+			System.out.println(line);
 
 			char[] ch=line.trim().toLowerCase().toCharArray();
 			StringBuilder sb = new StringBuilder(line.length());
@@ -167,6 +165,8 @@ public class LikelyTypeFinder implements ActionListener {
 			ArrayList<String> words = new ArrayList<String>();
 			ArrayList<Integer> numWords = new ArrayList<Integer>();
 			ArrayList<String> predicates = new ArrayList<String>();
+			
+
 			
 			
 			//populates features with the features to match against in the csv file

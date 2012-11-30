@@ -13,6 +13,7 @@ public class NameFinder {
 			BufferedReader br = new BufferedReader(new FileReader("AllNames.txt"));
 			System.out.println(br.readLine().trim());
 			String line;
+			@SuppressWarnings("unused")
 			TreeSet <String> tree = new TreeSet<String>();
 			int i=0;
 			while((line=br.readLine())!=null){
