@@ -138,7 +138,7 @@ public class LikelyTypeFinder implements ActionListener {
 
 		try{
 		  unknownType = unknownType.replaceAll("\\s","");
-			HttpURLConnection conn = (HttpURLConnection)( new URL("https://www.google.com/search?q=" + unknownType + "&ie=utf-8&oe=utf-8&aq=t&rls=org.mozilla:en-US:official&client=firefox-a&channel=fflb#q=" + unknownType + "&hl=en&client=firefox-a&hs=Lwq&tbo=d&rls=org.mozilla:en-US:official&channel=fflb&source=lnt&tbs=dfn:1&sa=X&ei=4L63UK7sDc_82gXj_4HQDg&ved=0CCMQpwUoAw&fp=1&bpcl=38897761&biw=1280&bih=920&bav=on.2,or.r_gc.r_pw.r_qf.&cad=b&sei=w9G3UImPNqfB2QX55IDgCg").openConnection());
+			HttpURLConnection conn = (HttpURLConnection)( new URL("https://www.google.com/#q=" + unknownType + "&hl=en&tbo=d&source=lnt&tbs=dfn:1&sa=X&ei=S1y-ULXcGMKY2wXL_oGICg&ved=0CCAQpwUoAw&bav=on.2,or.r_gc.r_pw.r_qf.&fp=c29b82c07a1a2eb&bpcl=39580677&biw=1280&bih=920").openConnection());
 			conn.setConnectTimeout( 10000 );
 			conn.setReadTimeout( 10000 );
 			conn.setInstanceFollowRedirects( true );
